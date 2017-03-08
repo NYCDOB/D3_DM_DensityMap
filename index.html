@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Leaflet and D3 Map</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7/leaflet.css"/>
+	<link rel="stylesheet" href="style2.css" type="text/css" media="screen" />
+
+</head>
+<body>
+
+    <div id="map" style="width: 1064px; height: 820px"></div>
+
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+
+    <script
+        src="http://cdn.leafletjs.com/leaflet-0.7/leaflet.js">
+
+    </script>
+
+    <script>
+	
+        var map = L.map('map').setView([40.705,-73.909], 11);
+		var toolserver = L.tileLayer('http://{s}.www.toolserver.org/tiles/bw-mapnik/{z}/{x}/{y}.png');
+		var stamen = L.tileLayer('http://{s}.tile.stamen.com/toner/{z}/{x}/{y}.png', {attribution: ''}).addTo(map);
+		var baseLayers = {"stamen": stamen, "toolserver-mapnik":toolserver};L.control.layers(baseLayers).addTo(map);
+		L.control.layers(baseLayers).addTo(map);
+
+		var color_domain = [2,3,4,5,6,7,8,9]
+		var ext_color_domain = [1,2,3,4,5,6,7,8,9]
+		var legend_labels = ["LOW", " ", " ", " ", " ", " ", " ", " ", "HIGH"]
+		var color = d3.scale.threshold()
+			.domain(color_domain)
+			.range(["#457571", "#668C81", "#8BA692", "#B1BFA3", "#DBDBB6", "#BFAD91", "#A3816F", "#875A50", "#6E3936"]);
+		
+		var commuteById = d3.map();
+			
+		var projection = d3.geo.mercator()
+		
+
+			
+		var CURR_SELECT = ["Category"];
+		
+		// Add an SVG element to Leaflet’s overlay pane
+		var svg = d3.select(map.getPanes().overlayPane).append("svg"),
+			g = svg.append("g").attr("class", "leaflet-zoom-hide");
+
+		
+		d3.json("DM_Density_2016_Dissolve_DecDeg.json", function(geoShape) {
+		
+		
+		//  create a d3.geo.path to convert GeoJSON to SVG
+		var transform = d3.geo.transform({point: projectPoint}),
+            	path = d3.geo.path().projection(transform);
+ 
+		// create path elements for each of the features
+		d3_features = g.selectAll("path")
+			.data(geoShape.features)
+			.enter().append("path")
+			.attr ("fill", function(d,i) {return color(i);});
+		
+		
+		
+		
+		map.on("viewreset", reset);
+
+		reset();
+		
+		svg.select("#progress-image").remove();
+		
+		// fit the SVG element to leaflet's map layer
+		function reset() {
+        
+			bounds = path.bounds(geoShape);
+
+			var topLeft = bounds[0],
+				bottomRight = bounds[1];
+
+			svg .attr("width", bottomRight[0] - topLeft[0])
+				.attr("height", bottomRight[1] - topLeft[1])
+				.style("left", topLeft[0] + "px")
+				.style("top", topLeft[1] + "px");
+
+			g .attr("transform", "translate(" + -topLeft[0] + "," 
+			                                  + -topLeft[1] + ")");
+
+			// initialize the path data	
+			d3_features.attr("d", path)
+				.style("fill-opacity", 0.7)
+				//.attr('fill','blue');
+				//.attr ("fill", function(d) {return color(commuteById.get(d.OBJECTID)[CURR_SELECT[0]]); });
+				
+		} 
+		
+		svg.on("wheel.zoom", null);
+		svg.on("mousewheel.zoom", null);	
+		
+		svg.append("rect")
+			.attr("class", "overlay")
+		
+		// Use Leaflet to implement a D3 geometric transformation.
+		function projectPoint(x, y) {
+			var point = map.latLngToLayerPoint(new L.LatLng(y, x));
+			this.stream.point(point.x, point.y);
+		}
+
+		var legend = svg.selectAll("g.legend")
+			.data(ext_color_domain)
+			.enter().append("g")
+			.style("font-size", "12px")
+			.style("font-family", "Arial, Helvetica, sans-serif")
+			//.style("font-weight","bold")
+			.style("fill", "white")
+			.attr("class", "legend");
+			
+		var ls_w = 34, ls_h = 34;
+
+		legend.append("rect")
+			.attr("x", 50)
+			//.attr("y", function(d, i){return height - (i*ls_h) - 2*ls_h;})
+			.attr("y", function(d, i){return 820 - (i*ls_h) - 2*ls_h;})
+			.attr('transform', 'translate(-15, -475)') /* XY position of legend*/
+			.attr("width", ls_w)
+			.attr("height", ls_h)
+			.style("fill", function(d, i){return color(d);})
+			//.style("opacity", 0.8);
+		legend.append("text")
+			.attr("x", 80)
+			//.attr("y", function(d, i){return height - (i*ls_h) - ls_h - 5;})
+			.attr("y", function(d, i){return 820 - (i*ls_h) - ls_h - 5;})
+			.attr('transform', 'translate(-43, -480)') /* XY position of legend*/
+			.text(function(d, i){return legend_labels[i];});
+	})
+        
+    </script>
+</body>
+</html>
