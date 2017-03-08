@@ -3,8 +3,9 @@
 <head>
     <title>DM Density Map</title>
     <meta charset="utf-8" />
-    <link rel="stylesheet" href="https://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css"/>
-	<link rel="stylesheet" href="style2.css" type="text/css" media="screen" />
+    <!--<link rel="stylesheet" href="https://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css"/>-->
+    <link rel="stylesheet" href="leaflet.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="style2.css" type="text/css" media="screen" />
 </head>
 <body>
 
@@ -12,14 +13,15 @@
 
 	<script src="https://d3js.org/d3.v3.min.js"></script>
 
-    	<script src="https://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+    	<!--<script src="https://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>-->
+	<script src="./js/leaflet.js"></script>
 
     <script>
 	
         var map = L.map('map').setView([40.705,-73.909], 11);
 		var toolserver = L.tileLayer('https://{s}.www.toolserver.org/tiles/bw-mapnik/{z}/{x}/{y}.png');
-		/*var stamen = L.tileLayer('https://{s}.tile.stamen.com/toner/{z}/{x}/{y}.png', {attribution: ''}).addTo(map);*/
-	    	var stamen = L.tileLayer('https://a.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: ''}).addTo(map);
+		var stamen = L.tileLayer('https://{s}.tile.stamen.com/toner/{z}/{x}/{y}.png', {attribution: ''}).addTo(map);
+	    	/*var stamen = L.tileLayer('https://a.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: ''}).addTo(map);*/
 		var baseLayers = {"stamen": stamen, "toolserver-mapnik":toolserver};L.control.layers(baseLayers).addTo(map);
 		L.control.layers(baseLayers).addTo(map);
 
