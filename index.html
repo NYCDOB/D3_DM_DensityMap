@@ -3,28 +3,57 @@
 <head>
     <title>DM Density Map</title>
     <meta charset="utf-8" />
-    <!--<link rel="stylesheet" href="https://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css"/>-->
-    <link rel="stylesheet" href="leaflet.css" type="text/css" media="screen" />
-    <link rel="stylesheet" href="style2.css" type="text/css" media="screen" />
+    <!-- <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7/leaflet.css"/> -->
+	<link rel="stylesheet" href="leaflet.css" type="text/css" media="screen" />
+	<link rel="stylesheet" href="style2.css" type="text/css" media="screen" />
+	
 </head>
+<style>
+	<!-- .legend { -->
+		<!-- position: absolute; -->
+		<!-- font-size: 12px; -->
+		<!-- font-family: Arial, Helvetica, sans-serif; -->
+		<!-- fill: white; -->
+	<!-- } -->
+	.info {
+		padding: 6px 8px;
+		<!-- font: 14px/16px Arial, Helvetica, sans-serif; -->
+		background: white;
+		background: rgba(255,255,255,0.8);
+		box-shadow: 0 0 25px rgba(0,0,0,0.2);
+		border-radius: 5px;
+	}
+	.legend {
+		line-height: 34px;
+		color: #000000;
+		font-weight: bold;
+	}
+	.legend i {
+		width: 34px;
+		height: 34px;
+		float: left;
+		margin-right: 8px;
+		opacity: 0.7;
+	}
+</style>
 <body>
 
     <div id="map" style="width: 1064px; height: 820px"></div>
 
-	<script src="https://d3js.org/d3.v3.min.js"></script>
-
-    	<!--<script src="https://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>-->
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+    <!-- <script src="http://cdn.leafletjs.com/leaflet-0.7/leaflet.js"></script> -->
 	<script src="./js/leaflet.js"></script>
+
 
     <script>
 	
         var map = L.map('map').setView([40.705,-73.909], 11);
 		var toolserver = L.tileLayer('http://{s}.www.toolserver.org/tiles/bw-mapnik/{z}/{x}/{y}.png');
 		var stamen = L.tileLayer('http://{s}.tile.stamen.com/toner/{z}/{x}/{y}.png', {attribution: ''}).addTo(map);
-	    	/*var stamen = L.tileLayer('https://a.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: ''}).addTo(map);*/
+		//var stamen = L.tileLayer('http://a.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: ''}).addTo(map);
 		var baseLayers = {"stamen": stamen, "toolserver-mapnik":toolserver};L.control.layers(baseLayers).addTo(map);
 		L.control.layers(baseLayers).addTo(map);
-
+		
 		var color_domain = [2,3,4,5,6,7,8,9]
 		var ext_color_domain = [1,2,3,4,5,6,7,8,9]
 		var legend_labels = ["LOW", " ", " ", " ", " ", " ", " ", " ", "HIGH"]
@@ -32,11 +61,43 @@
 			.domain(color_domain)
 			.range(["#457571", "#668C81", "#8BA692", "#B1BFA3", "#DBDBB6", "#BFAD91", "#A3816F", "#875A50", "#6E3936"]);
 		
+		function getColor(d) {
+			return d > 1500 ? '#457571' :
+				   d > 1000 ? '#668C81' :
+				   d > 500  ? '#8BA692' :
+				   d > 200  ? '#B1BFA3' :
+				   d > 100  ? '#DBDBB6' :
+				   d > 50   ? '#BFAD91' :
+				   d > 20   ? '#A3816F' :
+				   d > 10   ? '#875A50' :
+							   '#6E3936';
+		}
+		
 		var commuteById = d3.map();
 			
 		var projection = d3.geo.mercator()
-		
 
+		
+		var info = L.control();
+		info.onAdd = function(map) {
+			this._div = L.DomUtil.create('div', 'info');
+			return this._div;
+		};
+		info.addTo(map);
+		
+		var legend = L.control({position: 'topleft'});
+		legend.onAdd = function (map) {
+			var div = L.DomUtil.create('div', 'info legend'),
+				grades = [0, 10, 20, 50, 100, 200, 500, 1000, 1500],
+				labels = ["HIGH","","","","","","","","LOW"]; 
+			for (var i = 0; i < grades.length; i++) {
+				div.innerHTML +=
+					'<i style="background:' + getColor(grades[i] + 1) + '"></i> ' +
+					labels[i] + '<br>';					
+			}
+			return div;
+		};
+		legend.addTo(map);
 			
 		var CURR_SELECT = ["Category"];
 		
@@ -46,7 +107,7 @@
 
 		
 		d3.json("data/DM_Density_2016_Dissolve_DecDeg.json", function(geoShape) {
-		
+				
 		
 		//  create a d3.geo.path to convert GeoJSON to SVG
 		var transform = d3.geo.transform({point: projectPoint}),
@@ -58,7 +119,7 @@
 			.enter().append("path")
 			.attr ("fill", function(d,i) {return color(i);});
 		
-		
+
 		
 		
 		map.on("viewreset", reset);
@@ -85,17 +146,10 @@
 
 			// initialize the path data	
 			d3_features.attr("d", path)
-				.style("fill-opacity", 0.7)
-				//.attr('fill','blue');
-				//.attr ("fill", function(d) {return color(commuteById.get(d.OBJECTID)[CURR_SELECT[0]]); });
-				
+				.style("fill-opacity", 0.7)				
 		} 
 		
-		svg.on("wheel.zoom", null);
-		svg.on("mousewheel.zoom", null);	
-		
-		svg.append("rect")
-			.attr("class", "overlay")
+		map.scrollWheelZoom.disable();
 		
 		// Use Leaflet to implement a D3 geometric transformation.
 		function projectPoint(x, y) {
@@ -103,33 +157,30 @@
 			this.stream.point(point.x, point.y);
 		}
 
-		var legend = svg.selectAll("g.legend")
-			.data(ext_color_domain)
-			.enter().append("g")
-			.style("font-size", "12px")
-			.style("font-family", "Arial, Helvetica, sans-serif")
-			//.style("font-weight","bold")
-			.style("fill", "white")
-			.attr("class", "legend");
+		<!-- var legend = svg.selectAll("g.legend") -->
+			<!-- .data(ext_color_domain) -->
+			<!-- .enter().append("g") -->
+			<!-- .attr("class", "legend"); -->
 			
-		var ls_w = 34, ls_h = 34;
+		<!-- var ls_w = 34, ls_h = 34; -->
 
-		legend.append("rect")
-			.attr("x", 50)
-			//.attr("y", function(d, i){return height - (i*ls_h) - 2*ls_h;})
-			.attr("y", function(d, i){return 820 - (i*ls_h) - 2*ls_h;})
-			.attr('transform', 'translate(-15, -475)') /* XY position of legend*/
-			.attr("width", ls_w)
-			.attr("height", ls_h)
-			.style("fill", function(d, i){return color(d);})
-			//.style("opacity", 0.8);
-		legend.append("text")
-			.attr("x", 80)
-			//.attr("y", function(d, i){return height - (i*ls_h) - ls_h - 5;})
-			.attr("y", function(d, i){return 820 - (i*ls_h) - ls_h - 5;})
-			.attr('transform', 'translate(-43, -480)') /* XY position of legend*/
-			.text(function(d, i){return legend_labels[i];});
-	})
+		<!-- legend.append("rect") -->
+			<!-- .attr("x", 50) -->
+			<!-- //.attr("y", function(d, i){return height - (i*ls_h) - 2*ls_h;}) -->
+			<!-- .attr("y", function(d, i){return 820 - (i*ls_h) - 2*ls_h;}) -->
+			<!-- .attr('transform', 'translate(-15, -475)') /* XY position of legend*/ -->
+			<!-- .attr("width", ls_w) -->
+			<!-- .attr("height", ls_h) -->
+			<!-- .style("fill", function(d, i){return color(d);}); -->
+			<!-- //.style("opacity", 0.8); -->
+			
+		<!-- legend.append("text") -->
+			<!-- .attr("x", 80) -->
+			<!-- //.attr("y", function(d, i){return height - (i*ls_h) - ls_h - 5;}) -->
+			<!-- .attr("y", function(d, i){return 820 - (i*ls_h) - ls_h - 5;}) -->
+			<!-- .attr('transform', 'translate(-43, -480)') /* XY position of legend*/ -->
+			<!-- .text(function(d, i){return legend_labels[i];}); -->			
+})
         
     </script>
 </body>
