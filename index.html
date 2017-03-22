@@ -7,6 +7,8 @@
 	<link rel="stylesheet" href="leaflet.css" type="text/css" media="screen" />
 	<link rel="stylesheet" href="style2.css" type="text/css" media="screen" />
 	
+
+	
 </head>
 <style>
 	<!-- .legend { -->
@@ -15,6 +17,7 @@
 		<!-- font-family: Arial, Helvetica, sans-serif; -->
 		<!-- fill: white; -->
 	<!-- } -->
+
 	.info {
 		padding: 6px 8px;
 		<!-- font: 14px/16px Arial, Helvetica, sans-serif; -->
@@ -35,25 +38,49 @@
 		margin-right: 8px;
 		opacity: 0.7;
 	}
+
+	<!-- .popupCustom .leaflet-popup-content-wrapper { -->
+
+		<!-- opacity: 0.7; -->
+	<!-- } -->
+	<!-- .popupCustom .leaflet-popup-tip { -->
+		  <!-- border-left:2px solid transparent; -->
+		  <!-- border-right:2px solid transparent; -->
+		  <!-- border-top:2px solid #2c3e50; -->
+		  <!-- } -->
 </style>
 <body>
 
     <div id="map" style="width: 1064px; height: 820px"></div>
 
-	<script src="https://d3js.org/d3.v3.min.js"></script>
-    <!-- <script src="
-://cdn.leafletjs.com/leaflet-0.7/leaflet.js"></script> -->
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+    <!-- <script src="http://cdn.leafletjs.com/leaflet-0.7/leaflet.js"></script> -->
 	<script src="./js/leaflet.js"></script>
+	<script src="./js/leaflet.ajax.min.js"></script>
+	<!-- <script src="leaflet-providers.js"></script> -->
+	<script src="jquery-2.1.1.min.js"></script>
+	<!-- <script src="leaflet-ajax.js"></script> -->
+	<script type="text/javascript" src="data/DM_2016_LatLong.json"></script>
+	<!-- <script src="leaflet.ajax.min" type="text/javascript"></script> -->
+	<script type="text/javascript" src="DM_2016_LatLong_2.json"></script>
 
 
     <script>
+
+
+
+		
 	
-        var map = L.map('map').setView([40.705,-73.909], 11);
+		var map = L.map('map').setView([40.705,-73.909], 11);
 		var toolserver = L.tileLayer('http://{s}.www.toolserver.org/tiles/bw-mapnik/{z}/{x}/{y}.png');
-		var stamen = L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png', {attribution: ''}).addTo(map);
-		//var stamen = L.tileLayer('http://a.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: ''}).addTo(map);
-		var baseLayers = {"stamen": stamen, "toolserver-mapnik":toolserver};L.control.layers(baseLayers).addTo(map);
-		L.control.layers(baseLayers).addTo(map);
+		//var stamen = L.tileLayer('http://{s}.tile.stamen.com/toner/{z}/{x}/{y}.png', {attribution: ''}).addTo(map); /*Stamen.Toner*/
+		var stamen = L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png', {attribution: ''}).addTo(map); /*Stamen.TonerLite*/
+		//var stamen = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {attribution: ''}).addTo(map); /*CartoDB.Positron*/
+		//var stamen = L.tileLayer('http://a.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: ''}).addTo(map); /*OpenStreeMap.Mapkin*/
+		//var stamen = L.tileLayer('http://korona.geog.uni-heidelberg.de/tiles/roads/x={x}&y={y}&z={z}', {attribution: ''}).addTo(map); /*OpenMapSurfer*/
+		//var stamen = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}', {attribution: ''}).addTo(map); /*Esri.NatGeoWorldMap*/
+		//var baseLayers = {"stamen": stamen, "toolserver-mapnik":toolserver};
+		//L.control.layers(baseLayers).addTo(map);
 		
 		var color_domain = [2,3,4,5,6,7,8,9]
 		var ext_color_domain = [1,2,3,4,5,6,7,8,9]
@@ -61,7 +88,7 @@
 		var color = d3.scale.threshold()
 			.domain(color_domain)
 			.range(["#457571", "#668C81", "#8BA692", "#B1BFA3", "#DBDBB6", "#BFAD91", "#A3816F", "#875A50", "#6E3936"]);
-		
+				
 		function getColor(d) {
 			return d > 1500 ? '#457571' :
 				   d > 1000 ? '#668C81' :
@@ -77,6 +104,7 @@
 		var commuteById = d3.map();
 			
 		var projection = d3.geo.mercator()
+
 		
 		var info = L.control();
 		info.onAdd = function(map) {
@@ -98,81 +126,181 @@
 			return div;
 		};
 		legend.addTo(map);
-			
+		
+		var dmDensity_style = {
+			"stroke": "#eef442",
+			"stroke-width": 2,
+			"fill-opacity": .7
+		};
 		var CURR_SELECT = ["Category"];
 		
 		// Add an SVG element to Leaflet’s overlay pane
 		var svg = d3.select(map.getPanes().overlayPane).append("svg"),
 			g = svg.append("g").attr("class", "leaflet-zoom-hide");
+			
 		
-		d3.json("data/DM_Density_2016_Dissolve_DecDeg.json", function(geoShape) {
+	<!-- var dmDensity = d3.json("data/DM_Density_2016_Dissolve_DecDeg.json", function(geoShape) { -->
+	
+
+		<!-- //  create a d3.geo.path to convert GeoJSON to SVG -->
+		<!-- var transform = d3.geo.transform({point: projectPoint}), -->
+            	<!-- path = d3.geo.path().projection(transform);			 -->
+
 				
-		
-		//  create a d3.geo.path to convert GeoJSON to SVG
-		var transform = d3.geo.transform({point: projectPoint}),
-            	path = d3.geo.path().projection(transform);
+						
+		<!-- // Use Leaflet to implement a D3 geometric transformation. -->
+		<!-- function projectPoint(x, y) { -->
+			<!-- var point = map.latLngToLayerPoint(new L.LatLng(y, x)); -->
+			<!-- this.stream.point(point.x, point.y); -->
+		<!-- } -->
  
-		// create path elements for each of the features
-		d3_features = g.selectAll("path")
-			.data(geoShape.features)
-			.enter().append("path")
-			.attr ("fill", function(d,i) {return color(i);});
+		<!-- // create path elements for each of the features -->
+		<!-- d3_features = g.selectAll("path") -->
+			<!-- .data(geoShape.features) -->
+			<!-- .enter().append("path") -->
+			<!-- .attr ("class", "dmDensity_style") -->
+			<!-- //.attr ("fill", function(d,i) {return color(i);}); -->
 		
 		
+		<!-- map.on("viewreset", reset); -->
+
+		<!-- reset(); -->
 		
-		map.on("viewreset", reset);
-		reset();
+		<!-- svg.select("#progress-image").remove(); -->
 		
-		svg.select("#progress-image").remove();
-		
-		// fit the SVG element to leaflet's map layer
-		function reset() {
+		<!-- // fit the SVG element to leaflet's map layer -->
+		<!-- function reset() { -->
         
-			bounds = path.bounds(geoShape);
-			var topLeft = bounds[0],
-				bottomRight = bounds[1];
-			svg .attr("width", bottomRight[0] - topLeft[0])
-				.attr("height", bottomRight[1] - topLeft[1])
-				.style("left", topLeft[0] + "px")
-				.style("top", topLeft[1] + "px");
-			g .attr("transform", "translate(" + -topLeft[0] + "," 
-			                                  + -topLeft[1] + ")");
-			// initialize the path data	
-			d3_features.attr("d", path)
-				.style("fill-opacity", 0.7)				
-		} 
+			<!-- bounds = path.bounds(geoShape); -->
+
+			<!-- var topLeft = bounds[0], -->
+				<!-- bottomRight = bounds[1]; -->
+
+			<!-- svg .attr("width", bottomRight[0] - topLeft[0]) -->
+				<!-- .attr("height", bottomRight[1] - topLeft[1]) -->
+				<!-- .style("left", topLeft[0] + "px") -->
+				<!-- .style("top", topLeft[1] + "px"); -->
+
+			<!-- g .attr("transform", "translate(" + -topLeft[0] + ","  -->
+			                                  <!-- + -topLeft[1] + ")"); -->
+
+			<!-- // initialize the path data	 -->
+			<!-- d3_features.attr("d", path) -->
+				<!-- .style("fill-opacity", 0.7)		 -->
+				<!-- .attr ("fill", function(d,i) {return color(i);}); -->
+		<!-- }	 -->
+
 		
+		<!-- map.scrollWheelZoom.disable(); -->
+	<!-- }); -->
+
+
+
+		<!-- var geojsonMarkerOptions = { -->
+			<!-- radius: 3, -->
+			<!-- fillColor: "#42bff4", -->
+			//color: "#000",
+			<!-- weight: 0, -->
+			//opacity: 1,
+			<!-- fillOpacity: 0.8 -->
+		<!-- }; -->
+		
+		<!-- var pnts = L.geoJson(dmPnts, { -->
+			<!-- pointToLayer: function (feature, latlng){ -->
+				<!-- var popupContent = "PERMIT ISSUED: "+ feature.properties.DateTxt +"<br> ADDRESS: "+ feature.properties.Address +", "+ feature.properties.Borough_Na.toUpperCase() +"<br> CB: "+ feature.properties.Community_.toString() +"<br> BIN: " + feature.properties.BIN.toString(); -->
+				<!-- var popupOptions = {"className": "popupCustom"}; -->
+				<!-- return L.circleMarker(latlng, geojsonMarkerOptions).bindPopup(popupContent,popupOptions); -->
+			<!-- } -->
+		<!-- }); -->
+
+		<!-- map.on('zoomend', function(){ -->
+			<!-- var z = map.getZoom(); -->
+			<!-- if (z > 12 && map.hasLayer(pnts)==false) { -->
+				<!-- return pnts.addTo(map);	 -->
+			<!-- } -->
+			<!-- else if (z <= 12 && map.hasLayer(pnts)==true) { -->
+				<!-- map.removeLayer(pnts); -->
+				
+			<!-- } -->
+		<!-- }); -->
+
+
+
+
 		map.scrollWheelZoom.disable();
 		
-		// Use Leaflet to implement a D3 geometric transformation.
-		function projectPoint(x, y) {
-			var point = map.latLngToLayerPoint(new L.LatLng(y, x));
-			this.stream.point(point.x, point.y);
+        var geojsonMarkerOptions = {
+			radius: 3,
+			fillColor: "#42bff4",
+			<!-- //color: "#000", -->
+			weight: 0,
+			<!-- //opacity: 1, -->
+			fillOpacity: 0.8
+		};
+		
+	
+		var pnts = new L.geoJson.ajax("data/DM_2016_LatLong_2.json", {	
+			pointToLayer: function (feature, latlng) {
+				var popupContent = "PERMIT ISSUED: "+ feature.properties.DateTxt +"<br> ADDRESS: "+ feature.properties.Address +", "+ feature.properties.Borough_Na.toUpperCase() +"<br> CB: "+ feature.properties.Community_.toString() +"<br> BIN: " + feature.properties.BIN.toString();
+				var popupOptions = {"className": "popupCustom"};
+				return L.circleMarker(latlng, geojsonMarkerOptions).bindPopup(popupContent,popupOptions);
+				
+			}
+					
+		});
+
+		map.on('zoomend', function(){
+			var z = map.getZoom();
+			if (z > 12 && map.hasLayer(pnts)==false) {
+				return pnts.addTo(map);
+			}
+			else if (z <= 12 && map.hasLayer(pnts)==true) {
+				map.removeLayer(pnts);
+				
+			}	
+		});
+
+		function getDMcolor(d) {
+			return d > 8 ? '#6E3936' :
+				   d > 7  ? '#875A50' :
+				   d > 6  ? '#A3816F' :
+				   d > 5  ? '#BFAD91' :
+				   d > 4  ? '#DBDBB6' :
+				   d > 3   ? '#B1BFA3' :
+				   d > 2   ? '#8BA692' :
+				   d > 1   ? '#668C81' :
+							  '#457571'; 
 		}
-		<!-- var legend = svg.selectAll("g.legend") -->
-			<!-- .data(ext_color_domain) -->
-			<!-- .enter().append("g") -->
-			<!-- .attr("class", "legend"); -->
-			
-		<!-- var ls_w = 34, ls_h = 34; -->
-		<!-- legend.append("rect") -->
-			<!-- .attr("x", 50) -->
-			<!-- //.attr("y", function(d, i){return height - (i*ls_h) - 2*ls_h;}) -->
-			<!-- .attr("y", function(d, i){return 820 - (i*ls_h) - 2*ls_h;}) -->
-			<!-- .attr('transform', 'translate(-15, -475)') /* XY position of legend*/ -->
-			<!-- .attr("width", ls_w) -->
-			<!-- .attr("height", ls_h) -->
-			<!-- .style("fill", function(d, i){return color(d);}); -->
-			<!-- //.style("opacity", 0.8); -->
-			
-		<!-- legend.append("text") -->
-			<!-- .attr("x", 80) -->
-			<!-- //.attr("y", function(d, i){return height - (i*ls_h) - ls_h - 5;}) -->
-			<!-- .attr("y", function(d, i){return 820 - (i*ls_h) - ls_h - 5;}) -->
-			<!-- .attr('transform', 'translate(-43, -480)') /* XY position of legend*/ -->
-			<!-- .text(function(d, i){return legend_labels[i];}); -->			
-})
-        
+		function style(feature) {
+			return {
+				fillColor: getDMcolor(feature.properties.OBJECTID),
+				fillOpacity: 0.7,
+				//stroke: true,
+				//color: "#cfcfd1",
+				//weight: 0.5,
+				stroke: false,
+				fill: true
+			};
+		}
+		
+		function highlightFeature(e) {
+			var layer = e.layer;
+			layer.setStyle({
+			weight: 2,
+			color: "#eef442",
+			fillOpacity: 0.7
+			});
+		}
+		function onEachFeature(feature, layer) {
+			layer.on({
+				mousemove: highlightFeature
+			});
+		}
+
+		var dm = new L.geoJson.ajax(("data/DM_Density_2016_Dissolve_DecDeg.json"), {style: style, onEachFeature: onEachFeature}).addTo(map);
+		
+
+
     </script>
 </body>
 </html>
